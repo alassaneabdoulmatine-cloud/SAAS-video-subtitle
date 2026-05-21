@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// enum for user role
+enum userRole {
+  ADMIN
+  USER
+}
+
+enum workspaceRole {
+  OWNER
+  MEMBER
+}
+
+// multi-tenant schema user and workspace and members
+
+model user {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  password  String
+  role      userRole  @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  member    members[]
+}
+
+model workspace {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  member    members[]
+}
+
+model members {
+  id          String        @id @default(uuid())
+  userId      String
+  workspaceId String
+  user        user          @relation(fields: [userId], references: [id])
+  workspace   workspace     @relation(fields: [workspaceId], references: [id])
+  // can add workspace role
+  role        workspaceRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+
+  // make sure that one user can't be added to the same workspace twice
+  @@unique([userId, workspaceId])
+}
