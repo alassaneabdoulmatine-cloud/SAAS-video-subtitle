@@ -12,6 +12,18 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 export class ProjectsService {
   constructor(private prisma: PrismaService) { }
 
+  private async ensureProjectExists(projectId: string, workspaceId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, workspaceId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return project;
+  }
+
   async create(createProjectDto: CreateProjectDto, workspaceId: string) {
     const project = await this.prisma.project.create({
       data: {
@@ -33,18 +45,13 @@ export class ProjectsService {
 
   async findOne(id: string, workspaceId: string) {
 
-    const project = await this.prisma.project.findFirst({
-      where: { id, workspaceId },
-    });
+    return this.ensureProjectExists(id, workspaceId);
 
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    return project;
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto) {
+  async update(id: string, updateProjectDto: UpdateProjectDto, workspaceId: string) {
+
+    await this.ensureProjectExists(id, workspaceId);
 
     const project = await this.prisma.project.update({
       where: { id },
@@ -54,7 +61,9 @@ export class ProjectsService {
     return project;
   }
 
-  async remove(id: string) {
+  async remove(id: string, workspaceId: string) {
+
+    await this.ensureProjectExists(id, workspaceId);
 
     const project = await this.prisma.project.delete({
       where: { id },

@@ -1,26 +1,99 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/Prisma/prisma.service';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Injectable()
 export class VideosService {
-  create(createVideoDto: CreateVideoDto) {
-    return 'This action adds a new video';
+  constructor(private readonly prisma: PrismaService) { }
+
+  // Vérifie l'accès au projet dans le workspace
+  private async ensureProjectAccess(projectId: string, workspaceId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        workspaceId,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return project;
   }
 
-  findAll() {
-    return `This action returns all videos`;
+  // Vérifie si une vidéo existe dans le projet
+  private async ensureVideoExists(videoId: string, projectId: string) {
+    const video = await this.prisma.video.findFirst({
+      where: {
+        id: videoId,
+        projectId,
+      },
+    });
+
+    if (!video) {
+      throw new NotFoundException('Video not found');
+    }
+
+    return video;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} video`;
+  // CREATE
+  async create(createVideoDto: CreateVideoDto, projectId: string, workspaceId: string,) {
+    await this.ensureProjectAccess(projectId, workspaceId);
+
+    return this.prisma.video.create({
+      data: {
+        title: createVideoDto.title,
+        description: createVideoDto.description,
+        url: createVideoDto.url,
+        projectId,
+      },
+    });
   }
 
-  update(id: number, updateVideoDto: UpdateVideoDto) {
-    return `This action updates a #${id} video`;
+  // FIND ALL
+  async findAll(projectId: string, workspaceId: string) {
+    await this.ensureProjectAccess(projectId, workspaceId);
+
+    return this.prisma.video.findMany({
+      where: { projectId },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} video`;
+  // FIND ONE
+  async findOne(id: string, projectId: string, workspaceId: string,) {
+    await this.ensureProjectAccess(projectId, workspaceId);
+
+    return this.ensureVideoExists(id, projectId);
+  }
+
+  // UPDATE
+  async update(id: string, updateVideoDto: UpdateVideoDto, projectId: string, workspaceId: string,) {
+    await this.ensureProjectAccess(projectId, workspaceId);
+    await this.ensureVideoExists(id, projectId);
+
+    return this.prisma.video.update({
+      where: { id },
+      data: {
+        title: updateVideoDto.title,
+        description: updateVideoDto.description,
+        url: updateVideoDto.url,
+      },
+    });
+  }
+
+  // DELETE
+  async remove(id: string, projectId: string, workspaceId: string,) {
+    await this.ensureProjectAccess(projectId, workspaceId);
+    await this.ensureVideoExists(id, projectId);
+
+    return this.prisma.video.delete({
+      where: { id },
+    });
   }
 }

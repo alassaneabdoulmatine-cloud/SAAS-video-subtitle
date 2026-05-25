@@ -47,19 +47,23 @@ export class ProjectsController {
   update(
     @Param('id') id: string,
     @Body() dto: UpdateProjectDto,
+    @Param('workspaceId') workspaceId: string,
   ) {
     return this.projectsService.update(
       id,
       dto,
+      workspaceId,
     );
   }
 
   @Delete(':id')
   remove(
     @Param('id') id: string,
+    @Param('workspaceId') workspaceId: string,
   ) {
     return this.projectsService.remove(
       id,
+      workspaceId,
     );
   }
 }
