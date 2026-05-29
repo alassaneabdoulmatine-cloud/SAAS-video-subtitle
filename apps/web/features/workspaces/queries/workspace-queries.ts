@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { workspaceKeys } from "@/lib/queryKeys";
+import { workspaceKeys } from "@/lib/workspace-queryKeys";
+import { Workspace } from "../types/workspace-type";
 
 export function useWorkspace() {
     const router = useRouter();
@@ -26,7 +27,7 @@ export function useWorkspace() {
     // 🟢 CREATE
     const { mutateAsync: createWorkspace, isPending: isCreating } = useMutation({
         mutationFn: async (name: string) => {
-            return api("/workspace", {
+            return api<Workspace>("/workspace", {
                 method: "POST",
                 body: JSON.stringify({ name }),
             });
@@ -41,22 +42,22 @@ export function useWorkspace() {
     });
 
     // 🟢 LIST
-    const { data: workspaces, isLoading } = useQuery({
+    const { data: workspaces, isLoading: workspaceListLoading } = useQuery({
         queryKey: workspaceKeys.all,
-        queryFn: () => api("/workspace"),
+        queryFn: () => api<Workspace[]>("/workspace"),
     });
 
     // 🟢 SINGLE WORKSPACE
     const { data: workspace, isLoading: workspaceLoading } = useQuery({
         queryKey: workspaceKeys.detail(workspaceId),
-        queryFn: () => api(`/workspace/${workspaceId}`),
+        queryFn: () => api<Workspace>(`/workspace/${workspaceId}`),
         enabled: !!workspaceId,
     });
 
     // 🟡 UPDATE
     const { mutateAsync: updateWorkspace, isPending: isUpdating } = useMutation({
         mutationFn: async (name: string) => {
-            return api(`/workspace/${workspaceId}`, {
+            return api<Workspace>(`/workspace/${workspaceId}`, {
                 method: "PATCH",
                 body: JSON.stringify({ name }),
             });
@@ -73,7 +74,7 @@ export function useWorkspace() {
     // 🔴 DELETE
     const { mutateAsync: deleteWorkspace, isPending: isDeleting } = useMutation({
         mutationFn: async () => {
-            return api(`/workspace/${workspaceId}`, {
+            return api<Workspace>(`/workspace/${workspaceId}`, {
                 method: "DELETE",
             });
         },
@@ -92,7 +93,7 @@ export function useWorkspace() {
         isCreating,
 
         workspaces,
-        isLoading,
+        workspaceListLoading,
 
         workspace,
         workspaceLoading,

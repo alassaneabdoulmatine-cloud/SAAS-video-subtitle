@@ -4,11 +4,15 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import express from 'express';
+import { WorkspaceService } from 'src/workspace/workspace.service';
 
 @Controller("auth")
 export class AuthController {
 
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly workspaceService: WorkspaceService,
+  ) { }
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Res({ passthrough: true }) res: express.Response) {
@@ -19,7 +23,16 @@ export class AuthController {
       sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24,
     });
-    return { success: true, user: data.user };
+
+    const workspace = await this.workspaceService.create({
+      name: `${data.user.name}'s workspace`,
+    }, data.user.id);
+
+    return {
+      success: true,
+      user: data.user,
+      workspace
+    };
   }
 
   @UseGuards(LocalAuthGuard)

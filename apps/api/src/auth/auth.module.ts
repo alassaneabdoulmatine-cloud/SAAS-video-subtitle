@@ -7,11 +7,13 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { WorkspaceModule } from 'src/workspace/workspace.module';
 
 
 @Module({
   imports: [
     UserModule,
+    WorkspaceModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,

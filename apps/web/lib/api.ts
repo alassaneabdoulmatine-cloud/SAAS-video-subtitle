@@ -1,9 +1,6 @@
 const API_URL = "http://localhost:3001";
 
-export async function api<T>(
-    url: string,
-    options?: RequestInit
-): Promise<T> {
+export async function api<T>(url: string, options?: RequestInit): Promise<T> {
     const res = await fetch(`${API_URL}${url}`, {
         credentials: "include",
         headers: {
@@ -17,5 +14,5 @@ export async function api<T>(
         throw new Error(errorText || "API Error");
     }
 
-    return res.json();
+    return res.json() as T;
 }
