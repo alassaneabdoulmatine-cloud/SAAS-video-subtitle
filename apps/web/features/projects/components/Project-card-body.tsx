@@ -13,7 +13,7 @@ export default function ProjectCardBody({ project, workspace }: projectCardBodyP
     const router = useRouter();
 
     function handleRedirctToProject() {
-        router.push(`/${workspaceId}/project/${project.id}`);
+        router.push(`/${workspaceId}/project/${project.id}/videos`);
     }
     return (
         <div className="relative flex-1 bg-slate-950 overflow-hidden p-4 flex flex-col justify-between cursor-pointer" onClick={handleRedirctToProject}>

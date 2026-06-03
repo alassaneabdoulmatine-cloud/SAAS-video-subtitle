@@ -100,8 +100,8 @@ export function AppSidebar() {
                                         <SidebarMenuSub className="mt-1 border-l pl-4 ml-5">
                                             {projects.map((project) => (
                                                 <SidebarMenuSubItem key={project.id}>
-                                                    <SidebarMenuSubButton className={`${isActive(`/${workspaceId}/project/${project.id}`) ? "bg-muted" : ""} w-full text-sm cursor-pointer`} asChild>
-                                                        <Link href={`/${workspaceId}/project/${project.id}`}>
+                                                    <SidebarMenuSubButton className={`${isActive(`/${workspaceId}/project/${project.id}/videos`) ? "bg-muted" : ""} w-full text-sm cursor-pointer`} asChild>
+                                                        <Link href={`/${workspaceId}/project/${project.id}/videos`}>
                                                             <span>{project.name}</span>
                                                         </Link>
 
