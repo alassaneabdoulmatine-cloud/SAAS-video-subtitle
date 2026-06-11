@@ -27,8 +27,8 @@ enum VideoStatus {
   PENDING
   UPLOADING
   PROCESSING
-  READY
-  ERROR
+  SUCCESS
+  FAILED
 }
 
 // --- MODELS ---
@@ -84,13 +84,19 @@ model Video {
 
   status VideoStatus @default(PENDING)
 
-  s3Key    String?
+  videoRawUrl  String?
+  videoRawKey  String?
+  thumbnailUrl String?
+  thumbnailKey String?
+
+  videoFinalKey String? //video securiser
+  subtitles     Json?
+
   fileName String?
   fileSize Int?
   mimeType String?
 
-  duration  String? @default("00:00")
-  thumbnail String?
+  duration String? @default("00:00")
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

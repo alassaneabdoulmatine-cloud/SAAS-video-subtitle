@@ -6,6 +6,11 @@ import { VideoProcessorConsumer } from './video-preocessor.process';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { OpenAiModule } from 'src/openai/openai.module';
+import { FfmpegModule } from 'src/ffmpeg/ffmpeg.module';
+import { UploadModule } from 'src/upload/upload.module';
+import { VideosModule } from 'src/videos/videos.module';
+
 
 
 @Module({
@@ -14,17 +19,21 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
       name: 'video-processing',
     }),
 
-    // 2. Configuration globale de Bull-Board (accessible sur http://localhost:3000/admin/queues)
     BullBoardModule.forRoot({
       route: '/admin/queues',
       adapter: ExpressAdapter,
     }),
 
-    // 3. On enregistre ta queue dans le Board en précisant l'adaptateur BullMQ
+
     BullBoardModule.forFeature({
       name: 'video-processing',
-      adapter: BullMQAdapter, // <--- Tu dis explicitement à Bull-Board : "C'est du BullMQ, pas du vieux Bull"
+      adapter: BullMQAdapter,
     }),
+
+    OpenAiModule,
+    FfmpegModule,
+    UploadModule,
+    VideosModule
 
   ],
   controllers: [VideoProcessorController],

@@ -46,19 +46,17 @@ export class VideosService {
   async create(createVideoDto: CreateVideoDto, projectId: string, workspaceId: string,) {
     await this.ensureProjectAccess(projectId, workspaceId);
 
-    const { title, description, status, s3Key, fileName, fileSize, mimeType, duration, thumbnail } = createVideoDto;
+    const { title, description, status, fileName, fileSize, mimeType, duration } = createVideoDto;
 
     return this.prisma.video.create({
       data: {
         title,
         description,
         status,
-        s3Key,
         fileName,
         fileSize,
         mimeType,
         duration,
-        thumbnail,
         projectId,
       },
     });
@@ -85,7 +83,7 @@ export class VideosService {
     await this.ensureProjectAccess(projectId, workspaceId);
     await this.ensureVideoExists(id, projectId);
 
-    const { title, description, status, s3Key, fileName, fileSize, mimeType, duration, thumbnail } = updateVideoDto;
+    const { title, description, status, fileName, fileSize, mimeType, duration } = updateVideoDto;
 
     return this.prisma.video.update({
       where: { id },
@@ -93,12 +91,10 @@ export class VideosService {
         title,
         description,
         status,
-        s3Key,
         fileName,
         fileSize,
         mimeType,
         duration,
-        thumbnail,
       },
     });
   }

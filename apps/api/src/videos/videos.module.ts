@@ -8,5 +8,6 @@ import { PrismaModule } from 'src/Prisma/prisma.module';
   imports: [PrismaModule, AuthorizationModule],
   controllers: [VideosController],
   providers: [VideosService],
+  exports: [VideosService],
 })
 export class VideosModule { }

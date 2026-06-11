@@ -10,6 +10,8 @@ import { UploadModule } from './upload/upload.module';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { VideoProcessorModule } from './video-processor/video-processor.module';
+import { OpenAiModule } from './openai/openai.module';
+import { FfmpegModule } from './ffmpeg/ffmpeg.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { VideoProcessorModule } from './video-processor/video-processor.module';
       },
     }),
     VideoProcessorModule,
+    OpenAiModule,
+    FfmpegModule,
   ],
 })
 export class AppModule { }

@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, S3Client, UploadPartCommand } from '@aws-sdk/client-s3';
+import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, DeleteObjectsCommand, S3Client, UploadPartCommand } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid'
 import { getSignedUrl as getS3SignedUrl } from '@aws-sdk/s3-request-presigner'
 import { getSignedUrl as getCfSignedUrl } from "@aws-sdk/cloudfront-signer";
+import * as fs from 'fs';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class UploadService {
@@ -27,10 +29,11 @@ export class UploadService {
     }
 
     async initiateMultipartUpload(
+        videoId: string,
         filename: string,
         contentType: string,
     ) {
-        const key = `uploads/${uuidv4()}/${filename}`;
+        const key = `public/${videoId}/${filename}`;
 
         const command = new CreateMultipartUploadCommand({
             Bucket: this.BUCKET_NAME,
@@ -110,6 +113,56 @@ export class UploadService {
         });
 
         return signedUrl;
+    }
+
+    /**
+   * Upload un fichier local présent sur le VPS vers S3
+   * @param localFilePath Chemin absolu du fichier (ex: /tmp/thumb.jpg)
+   * @param s3Key Le chemin de destination dans le bucket (ex: projets/123/thumbnail.jpg)
+   */
+    async uploadLocalFile(localFilePath: string, s3Key: string): Promise<string> {
+        if (!fs.existsSync(localFilePath)) {
+            throw new Error(`Le fichier local à uploader n'existe pas : ${localFilePath}`);
+        }
+
+        const fileStream = fs.createReadStream(localFilePath);
+        const command = new PutObjectCommand({
+            Bucket: this.BUCKET_NAME,
+            Key: s3Key,
+            Body: fileStream,
+            ContentType: 'image/jpeg',
+        });
+
+        await this.s3client.send(command);
+        const cloudfrontDistributionUrl = this.configService.getOrThrow('CLOUDFRONT_DISTRIBUTION_URL');
+        return `${cloudfrontDistributionUrl}/${s3Key}`;
+    }
+
+    /**
+   *  Supprime plusieurs fichiers d'un coup sur S3 à partir de leurs clés
+   * @param s3Keys Tableau de clés (ex: ['public/...mp4', 'public/...jpg'])
+   */
+    async deleteMultipleFiles(s3Keys: string[]): Promise<void> {
+
+        const validKeys = s3Keys.filter((key) => !!key);
+
+        if (validKeys.length === 0) return;
+
+        const command = new DeleteObjectsCommand({
+            Bucket: this.BUCKET_NAME,
+            Delete: {
+                Objects: validKeys.map((key) => ({ Key: key })),
+                Quiet: true, // Évite que S3 renvoie un rapport trop lourd en retour
+            },
+        });
+
+        try {
+            await this.s3client.send(command);
+            console.log(`[S3] Nettoyage réussi pour les clés :`, validKeys);
+        } catch (error) {
+            console.error(`[S3 Erreur] Impossible de supprimer les fichiers :`, error);
+            throw error;
+        }
     }
 
 }
